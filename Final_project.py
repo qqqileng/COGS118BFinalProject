@@ -2,44 +2,49 @@
 """
 Created on Sat Nov 17 15:16:27 2018
 
-@author: QiLeng 
+@author: zhw18
 """
 
 import pandas as pd
 import numpy as np
-from neupy import algorithms
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import Normalizer
-#import arrow
-#from tqdm import tqdm
-#import re
-#from IPython.display import Image
-#import datetime
-#import seaborn as sns
+import arrow
+from tqdm import tqdm
+import re
+from IPython.display import Image
+import datetime
+import seaborn as sns
 import matplotlib.pyplot as plt
 import os
+import random
 get_ipython().run_line_magic('matplotlib', 'inline')
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score,roc_auc_score
+from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import KFold
 from sklearn.cluster import KMeans
-from random import *
+from sklearn.datasets import load_iris
+from sklearn.datasets import make_regression
+from sklearn.datasets import make_classification
+from sklearn import tree
+import graphviz
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# We are using the dataset 'hmnist_28_28_RGB.csv' which contains the RGB 
-# data of each image with 28 pixel * 28 pixel.
-medium_colored_data = pd.read_csv('./hmnist_28_28_RGB.csv')
+small_data = pd.read_csv('hmnist_8_8_L.csv')
+small_colored_data = pd.read_csv('hmnist_8_8_RGB.csv')
+medium_data = pd.read_csv('hmnist_28_28_L.csv')
+medium_colored_data = pd.read_csv('hmnist_28_28_RGB.csv')
+big_data = pd.read_csv('hmnist_64_64_L.csv')
 
-# Explore the head of file
-#medium_colored_data.head()
-#medium_colored_data.shape
-#sample_1 = medium_colored_data.drop("label", axis=1).values[0]
-#image_1 = sample_1.reshape((28, 28, 3)) # Reshape each row to be in 3 channels
+sample_1 = medium_colored_data.drop("label", axis=1).values[0]
+image_1 = sample_1.reshape((28, 28, 3))
 
-# Display the first image 
+sample = medium_colored_data.iloc[:,0:2352]
+label = medium_colored_data['label']
+
 #fig, ax = plt.subplots(1,4,figsize=(20,5))
 #for channel in range(3):
 #    ax[channel].imshow(image_1[:,:,channel], cmap="gray")
@@ -50,96 +55,86 @@ medium_colored_data = pd.read_csv('./hmnist_28_28_RGB.csv')
 #ax[3].set_title("All channels together")
 #ax[3].set_xlabel("Width")
 #ax[3].set_ylabel("Height")
-
-#----------------------- LVQ Algorithm --------------------------
-
-# Function Description: In this algorithm, we will use Euclidean distance 
-# to measure the affinity between two data points.
-# Define the function for calculation of Euclidean distance
-#def Euclidean_Distance(data1, data2):
-#    distance = 0.0
-#    for i in range(len(data1[0])-1): # The last value is the label
-#        distance += ( data1[i] - data2[i] )**2
-#    return sqrt(distance)
 #
-## Function Description: This function calculates the distance between the 
-## codebook and other data points.
-#def Best_Codebook(codebooks, row):
-#    distances = []
-#    for i in range(len(codebooks)):
-#        distances.append((codebooks[i], Euclidean_Distance(codebooks[i], row)))
-#    # Sort the distance in decreasing order
-#    distances.sort(key=lambda tup: tup[1])
-#    return distances[0][0]
+#kmeans = KMeans(n_clusters=8).fit(medium_colored_data)
+#kmeans_label = kmeans.labels_
+#cm = confusion_matrix(label, kmeans_label)
+#plt.imshow(cm,interpolation='none',cmap='Blues')
+#for (i, j), z in np.ndenumerate(cm):
+#    plt.text(j, i, z, ha='center', va='center')
+#plt.xlabel("kmeans label")
+#plt.ylabel("truth label")
+#plt.show()
+#
+#clf = tree.DecisionTreeClassifier()
+#clf = clf.fit(sample,label)
+#dot_data = tree.export_graphviz(clf, out_file=None) 
+#graph = graphviz.Source(dot_data)
 
+df_testing_1 = medium_colored_data.sample(frac = 0.2)
+df_training_1 = pd.concat([medium_colored_data,df_testing_1],axis = 0).drop_duplicates(keep = False)
+df_testing_2 = df_training_1.sample(frac = 0.25)
+df_training_2 = pd.concat([medium_colored_data,df_testing_2],axis = 0).drop_duplicates(keep = False)
+df_testing_3 = pd.concat([df_training_1,df_testing_2],axis = 0).drop_duplicates(keep = False).sample(frac = 0.3333)
+df_training_3 = pd.concat([medium_colored_data,df_testing_3],axis = 0).drop_duplicates(keep = False)
+df_testing_4 = pd.concat([df_training_1,df_testing_2,df_testing_3],axis = 0).drop_duplicates(keep = False).sample(frac = 0.5)
+df_training_4 = pd.concat([medium_colored_data,df_testing_4],axis = 0).drop_duplicates(keep = False)
+df_testing_5 = pd.concat([df_training_1,df_testing_2,df_testing_3,df_testing_4],axis = 0).drop_duplicates(keep = False)
+df_training_5 = pd.concat([medium_colored_data,df_testing_5],axis = 0).drop_duplicates(keep = False)
 
+training_sample_1 = df_training_1.iloc[:,0:2352]
+training_label_1 = df_training_1['label']
+testing_sample_1 = df_testing_1.iloc[:,0:2352]
+testing_label_1 = df_testing_1['label']
+training_sample_2 = df_training_2.iloc[:,0:2352]
+training_label_2 = df_training_2['label']
+testing_sample_2 = df_testing_2.iloc[:,0:2352]
+testing_label_2 = df_testing_2['label']
+training_sample_3 = df_training_3.iloc[:,0:2352]
+training_label_3 = df_training_3['label']
+testing_sample_3 = df_testing_3.iloc[:,0:2352]
+testing_label_3 = df_testing_3['label']
+training_sample_4 = df_training_4.iloc[:,0:2352]
+training_label_4 = df_training_4['label']
+testing_sample_4 = df_testing_4.iloc[:,0:2352]
+testing_label_4 = df_testing_4['label']
+training_sample_5 = df_training_5.iloc[:,0:2352]
+training_label_5 = df_training_5['label']
+testing_sample_5 = df_testing_5.iloc[:,0:2352]
+testing_label_5 = df_testing_5['label']
 
+clf = RandomForestClassifier(n_estimators=100, n_jobs=2, random_state=0)
+clf.fit(training_sample_1, training_label_1)
+testing_predict_1 = pd.Series(clf.predict(testing_sample_1))
+testing_compare_1 = pd.concat([testing_label_1.reset_index(drop=False),testing_predict_1],axis = 1)
+clf.fit(training_sample_2, training_label_2)
+testing_predict_2 = pd.Series(clf.predict(testing_sample_2))
+testing_compare_2 = pd.concat([testing_label_2.reset_index(drop=False),testing_predict_2],axis = 1)
+clf.fit(training_sample_3, training_label_3)
+testing_predict_3 = pd.Series(clf.predict(testing_sample_3))
+testing_compare_3 = pd.concat([testing_label_3.reset_index(drop=False),testing_predict_3],axis = 1)
+clf.fit(training_sample_4, training_label_4)
+testing_predict_4 = pd.Series(clf.predict(testing_sample_4))
+testing_compare_4 = pd.concat([testing_label_4.reset_index(drop=False),testing_predict_4],axis = 1)
+clf.fit(training_sample_5, training_label_5)
+testing_predict_5 = pd.Series(clf.predict(testing_sample_5))
+testing_compare_5 = pd.concat([testing_label_5.reset_index(drop=False),testing_predict_5],axis = 1)
+testing_compare = pd.concat([testing_compare_1,testing_compare_2,testing_compare_3,testing_compare_4,testing_compare_5],axis = 0)
 
- 
-# Shuffle the dataset
-medium_colored_data = medium_colored_data.values
-np.random.shuffle(medium_colored_data)
-
-# Split the X and Y values. Do a 5-folds cross validation.
-rownum = len(medium_colored_data)
-col = len(medium_colored_data[0])
-X = medium_colored_data[:, 0:col-1]
-Y = medium_colored_data[:, col-1]
-kf = KFold(n_splits=5)
-kf.get_n_splits(X)
-print(kf)
-
-# Use a for loop to perform the LVQ 5 times for different sets of training and 
-# testing data.
-count = 0
-acc = [None] * 5
-Y = Y-1
-'''
-X = X[0:100,0:30]
-Y = Y[0:100]
-transformer = Normalizer().fit(X)
-X = transformer.transform(X)
-lvqnet = algorithms.LVQ2(n_inputs=30,n_classes=8)
-lvqnet.train(X,Y, epochs=100)
-Y_pred = lvqnet.predict(X)
-acc = accuracy_score(Y,Y_pred)
-'''
-
-for train_index, test_index in kf.split(X):
-    # Set up the training and testing sets
-    X_train, X_test = X[train_index], X[test_index]
-    Y_train, Y_test = Y[train_index], Y[test_index]
-    
-    print(X_train.shape)
-    print(Y_train.shape)
-    
-    # Train the algorithm using training set
-    lvqnet = algorithms.LVQ3(n_inputs=col-1, n_classes=8)
-    lvqnet.train(X_train, Y_train, epochs=500)
-    
-    # Test the algororithm using testing set
-    Y_pred = lvqnet.predict(X_test)
-    
-    acc[count] = accuracy_score(Y_test, Y_pred)
-    count = count + 1
-
-    
-
-    # Initialize the codebook vectors to be vectors that are randomly selected 
-    # from the training data we have. 
-#    codebooks = []
-#    randindex = np.random.randint(0, len(X[0])-1)
-#    codebooks.append(X[randindex,:])
-#    for x in range (1,8):
-#        randindex = np.random.randint(0, len(X[0])-1)
-#        codebooks.append(X[randindex,:].reshape(-1))
-#        
-    # After the initialization, we need to train the codebook vector to best 
-    # fit the dataset
-    
-    
-    # Find the best matching codebook for each new data point
-    
-    
-# Next, we need to find the best matching unit (codebook vector)
-    
+testing_compare_1a = testing_compare[(testing_compare['label'] == 1)].reset_index(drop=False)
+testing_compare_1b = testing_compare[(testing_compare[0] == 1)].reset_index(drop=False)
+testing_compare_2a = testing_compare[(testing_compare['label'] == 2)].reset_index(drop=False)
+testing_compare_2b = testing_compare[(testing_compare[0] == 2)].reset_index(drop=False)
+testing_compare_3a = testing_compare[(testing_compare['label'] == 3)].reset_index(drop=False)
+testing_compare_3b = testing_compare[(testing_compare[0] == 3)].reset_index(drop=False)
+testing_compare_4a = testing_compare[(testing_compare['label'] == 4)].reset_index(drop=False)
+testing_compare_4b = testing_compare[(testing_compare[0] == 4)].reset_index(drop=False)
+testing_compare_5a = testing_compare[(testing_compare['label'] == 5)].reset_index(drop=False)
+testing_compare_5b = testing_compare[(testing_compare[0] == 5)].reset_index(drop=False)
+testing_compare_6a = testing_compare[(testing_compare['label'] == 6)].reset_index(drop=False)
+testing_compare_6b = testing_compare[(testing_compare[0] == 6)].reset_index(drop=False)
+testing_compare_7a = testing_compare[(testing_compare['label'] == 7)].reset_index(drop=False)
+testing_compare_7b = testing_compare[(testing_compare[0] == 7)].reset_index(drop=False)
+testing_compare_8a = testing_compare[(testing_compare['label'] == 8)].reset_index(drop=False)
+testing_compare_8b = testing_compare[(testing_compare[0] == 8)].reset_index(drop=False)
+#pd.value_counts(testing_compare_1a[0].values, sort=False)

@@ -45,31 +45,31 @@ image_1 = sample_1.reshape((28, 28, 3))
 sample = medium_colored_data.iloc[:,0:2352]
 label = medium_colored_data['label']
 
-#fig, ax = plt.subplots(1,4,figsize=(20,5))
-#for channel in range(3):
-#    ax[channel].imshow(image_1[:,:,channel], cmap="gray")
-#    ax[channel].set_title("Channel {}".format(channel+1))
-#    ax[channel].set_xlabel("Width")
-#    ax[channel].set_ylabel("Height")
-#ax[3].imshow(image_1)
-#ax[3].set_title("All channels together")
-#ax[3].set_xlabel("Width")
-#ax[3].set_ylabel("Height")
-#
-#kmeans = KMeans(n_clusters=8).fit(medium_colored_data)
-#kmeans_label = kmeans.labels_
-#cm = confusion_matrix(label, kmeans_label)
-#plt.imshow(cm,interpolation='none',cmap='Blues')
-#for (i, j), z in np.ndenumerate(cm):
-#    plt.text(j, i, z, ha='center', va='center')
-#plt.xlabel("kmeans label")
-#plt.ylabel("truth label")
-#plt.show()
-#
-#clf = tree.DecisionTreeClassifier()
-#clf = clf.fit(sample,label)
-#dot_data = tree.export_graphviz(clf, out_file=None) 
-#graph = graphviz.Source(dot_data)
+fig, ax = plt.subplots(1,4,figsize=(20,5))
+for channel in range(3):
+    ax[channel].imshow(image_1[:,:,channel], cmap="gray")
+    ax[channel].set_title("Channel {}".format(channel+1))
+    ax[channel].set_xlabel("Width")
+    ax[channel].set_ylabel("Height")
+ax[3].imshow(image_1)
+ax[3].set_title("All channels together")
+ax[3].set_xlabel("Width")
+ax[3].set_ylabel("Height")
+
+kmeans = KMeans(n_clusters=8).fit(medium_colored_data)
+kmeans_label = kmeans.labels_
+cm = confusion_matrix(label, kmeans_label)
+plt.imshow(cm,interpolation='none',cmap='Blues')
+for (i, j), z in np.ndenumerate(cm):
+    plt.text(j, i, z, ha='center', va='center')
+plt.xlabel("kmeans label")
+plt.ylabel("truth label")
+plt.show()
+
+clf = tree.DecisionTreeClassifier()
+clf = clf.fit(sample,label)
+dot_data = tree.export_graphviz(clf, out_file=None) 
+graph = graphviz.Source(dot_data)
 
 df_testing_1 = medium_colored_data.sample(frac = 0.2)
 df_training_1 = pd.concat([medium_colored_data,df_testing_1],axis = 0).drop_duplicates(keep = False)
